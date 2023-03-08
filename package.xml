@@ -4,7 +4,7 @@
   <version>0.1.0</version>
   <description>ROS versions of protobuf messages used for otomo</description>
 
-  <url type="website">http://github.com/TWALL9/otomo-protobuf/</url>
+  <url type="website">http://github.com/TWALL9/otomo_msgs/</url>
 
 
   <maintainer email="thomaswallis0@gmail.com">tom</maintainer>
@@ -13,8 +13,10 @@
   <license>MIT</license>
 
   <buildtool_depend>catkin</buildtool_depend>
+  <depend>rospy</depend>
   <build_depend>message_generation</build_depend>
   <exec_depend>message_runtime</exec_depend>
+  <build_export_depend>protobuf</build_export_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
