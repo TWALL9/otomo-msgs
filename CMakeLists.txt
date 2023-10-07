@@ -1,25 +1,27 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.5)
 project(otomo_msgs)
 
-add_compile_options(-std=c++14)
+# Default to C99
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 99)
+endif()
 
-find_package(catkin REQUIRED COMPONENTS
-  message_generation
-  message_runtime
-  std_msgs
-  rospy
-)
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
+find_package(ament_cmake REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
 
 find_package(Protobuf REQUIRED)
 
-add_message_files(
-  FILES
-  Joystick.msg
-)
-
-generate_messages(
-  DEPENDENCIES
-  std_msgs
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/Joystick.msg"
 )
 
 set(PROTO_DIR ${PROJECT_SOURCE_DIR}/otomo-protobuf)
@@ -27,8 +29,10 @@ file(GLOB PROTO_FILES ${PROTO_DIR}/*.proto)
 message(STATUS "Proto dir: ${PROTO_DIR}")
 message(STATUS "Proto files: ${PROTO_FILES}")
 
-set(PROTO_GEN_CPP_DIR ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_INCLUDE_DESTINATION})
-set(PROTO_GEN_PY_DIR ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_PYTHON_DESTINATION})
+set(DEVEL_PREFIX ${PROJECT_SOURCE_DIR}/../../build/${PROJECT_NAME}/devel/include/${PROJECT_NAME})
+
+set(PROTO_GEN_CPP_DIR ${DEVEL_PREFIX})
+set(PROTO_GEN_PY_DIR ${DEVEL_PREFIX}/py)
 file(MAKE_DIRECTORY ${PROTO_GEN_CPP_DIR})
 file(MAKE_DIRECTORY ${PROTO_GEN_PY_DIR})
 
@@ -39,6 +43,8 @@ foreach(PROTO_FILE ${PROTO_FILES})
   list(APPEND PROTO_GEN_CPP_FILES ${PROTO_GEN_CPP_DIR}/${PROTO_NAME}.pb.h ${PROTO_GEN_CPP_DIR}/${PROTO_NAME}.pb.cc)
   list(APPEND PROTO_GEN_PY_FILES ${PROTO_GEN_PY_DIR}/${PROTO_NAME}_pb2.py)
 endforeach(PROTO_FILE ${PROTO_FILES})
+
+message(STATUS " gen files: ${PROTO_GEN_CPP_FILES}")
 
 add_custom_command(
   OUTPUT ${PROTO_GEN_CPP_FILES} ${PROTO_GEN_PY_FILES}
@@ -55,38 +61,47 @@ add_custom_target(
   DEPENDS ${PROTO_GEN_CPP_FILES} ${PROTO_GEN_PY_FILES}
 )
 
-catkin_package(
-  DEPENDS Protobuf
-  LIBRARIES ${PROJECT_NAME}_proto
-)
-
-include_directories(
-  ${catkin_INCLUDE_DIRS}
-)
-
 # Declare a C++ library
 add_library(
   ${PROJECT_NAME}_proto
   ${PROTO_GEN_CPP_FILES}
 )
 
+ament_export_targets(${PROJECT_NAME}_proto HAS_LIBRARY_TARGET)
+ament_export_dependencies(rosidl_default_generators, Protobuf)
+
 target_link_libraries(${PROJECT_NAME}_proto ${PROTOBUF_LIBRARY})
 add_dependencies(${PROJECT_NAME}_proto ${PROJECT_NAME}_generate_headers)
 
 # Mark libraries for installation
-# See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html
-install(TARGETS ${PROJECT_NAME}_proto
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+install(
+  TARGETS ${PROJECT_NAME}_proto
+  EXPORT ${PROJECT_NAME}_proto
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  INCLUDES DESTINATION include
+  RUNTIME DESTINATION bin
 )
 
 install(DIRECTORY ${PROTO_GEN_CPP_DIR}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  DESTINATION include
   FILES_MATCHING PATTERN "*.h"
 )
 
-install(DIRECTORY ${PROTO_GEN_PY_DIR}/
-  DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION}
-  FILES_MATCHING PATTERN "*.py"
-)
+# install(DIRECTORY ${PROTO_GEN_PY_DIR}/
+#   DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION}
+#   FILES_MATCHING PATTERN "*.py"
+# )
+
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  # the following line skips the linter which checks for copyrights
+  # uncomment the line when a copyright and license is not present in all source files
+  #set(ament_cmake_copyright_FOUND TRUE)
+  # the following line skips cpplint (only works in a git repo)
+  # uncomment the line when this package is not in a git repo
+  #set(ament_cmake_cpplint_FOUND TRUE)
+  ament_lint_auto_find_test_dependencies()
+endif()
+
+ament_package()
