@@ -71,7 +71,6 @@ add_library(
 )
 
 ament_export_targets(${PROJECT_NAME}_proto HAS_LIBRARY_TARGET)
-ament_export_dependencies(rosidl_default_generators, Protobuf)
 
 target_link_libraries(${PROJECT_NAME}_proto ${PROTOBUF_LIBRARY})
 add_dependencies(${PROJECT_NAME}_proto ${PROJECT_NAME}_generate_headers)
@@ -82,12 +81,11 @@ install(
   EXPORT ${PROJECT_NAME}_proto
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
-  INCLUDES DESTINATION include
   RUNTIME DESTINATION bin
 )
 
 install(DIRECTORY ${PROTO_GEN_CPP_DIR}/
-  DESTINATION include
+  DESTINATION include/${PROJECT_NAME}
   FILES_MATCHING PATTERN "*.h"
 )
 
