@@ -22,6 +22,7 @@ find_package(Protobuf REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Joystick.msg"
+  "msg/Diffdrive.msg"
 )
 
 set(PROTO_DIR ${PROJECT_SOURCE_DIR}/otomo-protobuf)
