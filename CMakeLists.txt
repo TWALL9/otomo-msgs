@@ -17,12 +17,15 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
+find_package(std_msgs REQUIRED)
 
 find_package(Protobuf REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Joystick.msg"
   "msg/Diffdrive.msg"
+  "msg/Pid.msg"
+  DEPENDENCIES std_msgs
 )
 
 set(PROTO_DIR ${PROJECT_SOURCE_DIR}/otomo-protobuf)
